@@ -59,17 +59,21 @@ def getExistingData(data):
         return data
 
 
+def runTicker(t):
+    ticker = parseTicker(t)
+    existingTickers = getExistingData(ticker)
+
+    if len(existingTickers) == 0:
+        saveData(ticker)
+    else:
+        ticker['dateAdded'] = existingTickers[0]['dateAdded']
+        updateData(ticker, existingTickers[0]['id'])
+
+
 def run():
     coinMarketData = readCoinMarket(coin_market_url)
 
     for t in coinMarketData:
-        ticker = parseTicker(t)
-        existingTickers = getExistingData(ticker)
-
-        if len(existingTickers) == 0:
-            saveData(ticker)
-        else:
-            ticker['dateAdded'] = existingTickers[0]['dateAdded']
-            updateData(ticker, existingTickers[0]['id'])
+        runTicker(t)
 
 run()
