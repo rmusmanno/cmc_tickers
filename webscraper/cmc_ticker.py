@@ -6,16 +6,17 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Scraper to read top tickers from CoinMarket.',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--top_tickers', type=int, default=100,
+parser.add_argument('--t', '--top_tickers', type=int, default=100,
                     help='Number of top tickers to be analyzed.')
+parser.add_argument('--s', '--server', type=str, default='http://localhost:8000',
+                    help='Server url to store read tickers.')
 
 args = parser.parse_args()
 
-number_of_top_tickers_to_be_analyzed = args.top_tickers
+number_of_top_tickers_to_be_analyzed = args.t
 coin_market_url = 'https://api.coinmarketcap.com/v1/ticker/?limit=' + \
     str(number_of_top_tickers_to_be_analyzed)
-server_url = 'http://localhost:8000'
-
+server_url = args.s
 
 def parseTicker(data):
     ticker = {}
