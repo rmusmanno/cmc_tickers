@@ -23,7 +23,7 @@ services:
       - .:/app  # mount current directory inside container
     ports:
       - "8000:8000"
-    # set up links so that web knows about db, rabbit and redis
+    # set up links so that web knows about db
     links:
       - db
     depends_on:

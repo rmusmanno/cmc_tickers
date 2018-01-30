@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# wait for PSQL server to start
-sleep 10
+# wait 1 minute for PSQL server to start
+sleep 60
 
 cd cmc_tickers  
 # prepare init migration
