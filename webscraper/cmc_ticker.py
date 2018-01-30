@@ -4,6 +4,8 @@ import requests
 import datetime
 import argparse
 
+from apscheduler.schedulers.blocking import BlockingScheduler
+
 parser = argparse.ArgumentParser(description='Scraper to read top tickers from CoinMarket.',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--t', '--top_tickers', type=int, default=100,
@@ -81,10 +83,17 @@ def runTicker(t):
         updateData(ticker, existingTickers[0]['id'])
 
 
-def run():
+def runscraper():
     coinMarketData = readCoinMarket(coin_market_url)
 
     for t in coinMarketData:
         runTicker(t)
 
-run()
+print("Starting webscraper scheduler...")
+print("Server: " + server_url)
+print("Top tickers: " + str(number_of_top_tickers_to_be_analyzed))
+scheduler = BlockingScheduler()
+job = scheduler.add_job(runscraper, 'interval', minutes=1)
+print("Running schedule...")
+runscraper()
+scheduler.start()
