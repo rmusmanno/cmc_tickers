@@ -17,8 +17,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    hostname: web
-    command: ./run_web.sh
+    command: python cmc_tickers/manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app  # mount current directory inside container
     ports:
@@ -29,11 +28,13 @@ services:
     depends_on:
       - db
 
-  # Celery worker
-  worker:
+  # Scraper
+  scraper:
     build:
       context: .
       dockerfile: Dockerfile
     command: ./run_scraper.sh
     volumes:
       - .:/app
+    depends_on:
+      - web
