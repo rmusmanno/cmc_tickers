@@ -10,11 +10,14 @@ parser = argparse.ArgumentParser(description='Scraper to read top tickers from C
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--t', '--top_tickers', type=int, default=100,
                     help='Number of top tickers to be analyzed.')
+parser.add_argument('--i', '--interval', type=int, default=60,
+                    help='Number of top tickers to be analyzed.')
 parser.add_argument('--s', '--server', type=str, default='http://localhost:8000',
                     help='Server url to store read tickers.')
 
 args = parser.parse_args()
 
+script_interval = args.i
 number_of_top_tickers_to_be_analyzed = args.t
 coin_market_url = 'https://api.coinmarketcap.com/v1/ticker/?limit=' + \
     str(number_of_top_tickers_to_be_analyzed)
@@ -92,8 +95,9 @@ def runscraper():
 print("Starting webscraper scheduler...")
 print("Server: " + server_url)
 print("Top tickers: " + str(number_of_top_tickers_to_be_analyzed))
+print("Script interval (in seconds): " + str(script_interval))
 scheduler = BlockingScheduler()
-job = scheduler.add_job(runscraper, 'interval', minutes=1)
+job = scheduler.add_job(runscraper, 'interval', seconds=script_interval)
 print("Running schedule...")
 runscraper()
 scheduler.start()
