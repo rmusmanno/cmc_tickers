@@ -1,0 +1,15 @@
+<html>
+	<head>
+		<title>RankCharts</title>
+	</head>
+	<body>
+		<h2>RankCharts</h2>
+		
+		<ul>
+			{% for t in tickers %}
+				<li><a href="/rankChart/{{ t.tickerId }}">{{ t.name }}</a></li>
+			{% endfor %}
+		</ul>
+
+	</body>
+</html>

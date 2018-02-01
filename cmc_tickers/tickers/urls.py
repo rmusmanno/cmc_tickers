@@ -8,6 +8,8 @@ urlpatterns = [
     url(r'^tickers/$', views.TickerListCreate.as_view()),
     url(r'^tickers/(?P<pk>[0-9]+)/$', views.TickerDetail.as_view()),
     url(r'^tickersWithId/(?P<tickerId>.+)/$', views.TickerWithId.as_view()),
+    url(r'^rankChart/(?P<tickerId>.+)/$', views.rank_chart),
+    url(r'^index$', views.index),
 
 ]
 

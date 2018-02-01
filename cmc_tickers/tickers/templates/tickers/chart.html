@@ -1,0 +1,27 @@
+<html>
+	<head>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.js"></script>
+		<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/dygraph/2.1.0/dygraph.min.css" />
+		<title>RankChart: {{ ticker_id }}</title>
+	</head>
+	<body>
+		<h2>RankChart: {{ ticker_id }}</h2>
+		<center>
+			<div id="graphdiv" style="width:75%; height:75%"></div>
+		</center>
+
+		<script type="text/javascript">
+		  input = "Date,Rank\n" +
+					{% for th in ticker_history %}
+						'{{ th.lastAnalyzed|date:"Y-m-d H:i" }},{{ th.rank }}\n' +
+					{% endfor %}
+					'\n';
+
+			g = new Dygraph(
+				// containing div
+				document.getElementById("graphdiv"),
+				input
+			);
+		</script>
+	</body>
+</html>
