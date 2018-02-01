@@ -25,8 +25,7 @@ SECRET_KEY = 'b3$654l@-*lw7pkux7p=ak=&2m)+deo309&ee^a7@%gaedzuw^'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#ALLOWED_HOSTS = ['0.0.0.0', 'web']
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['0.0.0.0', 'web']
 
 # Application definition
 
@@ -75,15 +74,15 @@ WSGI_APPLICATION = 'cmc_tickers.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
+"""
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 """
+
 DATABASES = {  
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -94,7 +93,7 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT_5432_TCP_PORT', ''),
     },
 }
-"""
+
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
 
