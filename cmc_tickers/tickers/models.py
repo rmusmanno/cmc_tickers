@@ -17,7 +17,9 @@ class Ticker(models.Model):
     priceUsd = models.FloatField(null=True, blank=True)
     priceBtc = models.FloatField(null=True, blank=True)
     dayVolumeUsd = models.FloatField(null=True, blank=True)
+    dayVolumeBtc = models.FloatField(null=True, blank=True)
     markedCapUsd = models.FloatField(null=True, blank=True)
+    marketCapBtc = models.FloatField(null=True, blank=True)
     availableSupply = models.FloatField(null=True, blank=True)
     totalSupply = models.FloatField(null=True, blank=True)
     maxSupply = models.FloatField(null=True, blank=True)
@@ -44,7 +46,9 @@ class TickerHistory(models.Model):
     priceUsd = models.FloatField(null=True, blank=True)
     priceBtc = models.FloatField(null=True, blank=True)
     dayVolumeUsd = models.FloatField(null=True, blank=True)
+    dayVolumeBtc = models.FloatField(null=True, blank=True)
     markedCapUsd = models.FloatField(null=True, blank=True)
+    marketCapBtc = models.FloatField(null=True, blank=True)
     availableSupply = models.FloatField(null=True, blank=True)
     totalSupply = models.FloatField(null=True, blank=True)
     maxSupply = models.FloatField(null=True, blank=True)
@@ -74,7 +78,9 @@ def save_ticker_history(sender, instance, created, **kwargs):
                                  priceUsd=instance.priceUsd,
                                  priceBtc=instance.priceBtc,
                                  dayVolumeUsd=instance.dayVolumeUsd,
+                                 dayVolumeBtc=instance.dayVolumeBtc,
                                  markedCapUsd=instance.markedCapUsd,
+                                 marketCapBtc=instance.marketCapBtc,
                                  availableSupply=instance.availableSupply,
                                  totalSupply=instance.totalSupply,
                                  maxSupply=instance.maxSupply,
