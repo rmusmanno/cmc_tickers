@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 script_interval = args.i
 number_of_top_tickers_to_be_analyzed = args.t
-coin_market_url = 'https://api.coinmarketcap.com/v1/ticker/?limit=' + \
+coin_market_url = 'https://api.coinmarketcap.com/v1/ticker/?convert=BTC&limit=' + \
     str(number_of_top_tickers_to_be_analyzed)
 server_url = args.s
 
@@ -33,7 +33,9 @@ def parseTicker(data):
     ticker['priceUsd'] = data['price_usd']
     ticker['priceBtc'] = data['price_btc']
     ticker['dayVolumeUsd'] = data['24h_volume_usd']
-    ticker['markedCapUsd'] = data['market_cap_usd']
+    ticker['dayVolumeBtc'] = data['24h_volume_btc']
+    ticker['marketCapUsd'] = data['market_cap_usd']
+    ticker['marketCapUsd'] = data['market_cap_btc']
     ticker['availableSupply'] = data['available_supply']
     ticker['totalSupply'] = data['total_supply']
     ticker['maxSupply'] = data['max_supply']

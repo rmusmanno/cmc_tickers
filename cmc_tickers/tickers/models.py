@@ -1,8 +1,9 @@
 from django.db import models
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 
 import django.utils.timezone
+from datetime import timedelta
 
 from tickers.signals import UpdateCustomManager, post_update
 
@@ -18,6 +19,7 @@ class Ticker(models.Model):
     priceBtc = models.FloatField(null=True, blank=True)
     dayVolumeUsd = models.FloatField(null=True, blank=True)
     dayVolumeBtc = models.FloatField(null=True, blank=True)
+    dayVolumeBtcVariation = models.FloatField(null=True, blank=True)
     marketCapUsd = models.FloatField(null=True, blank=True)
     marketCapBtc = models.FloatField(null=True, blank=True)
     availableSupply = models.FloatField(null=True, blank=True)
@@ -47,6 +49,7 @@ class TickerHistory(models.Model):
     priceBtc = models.FloatField(null=True, blank=True)
     dayVolumeUsd = models.FloatField(null=True, blank=True)
     dayVolumeBtc = models.FloatField(null=True, blank=True)
+    dayVolumeBtcVariation = models.FloatField(null=True, blank=True)
     marketCapUsd = models.FloatField(null=True, blank=True)
     marketCapBtc = models.FloatField(null=True, blank=True)
     availableSupply = models.FloatField(null=True, blank=True)
@@ -70,6 +73,14 @@ class TickerHistory(models.Model):
         verbose_name_plural = 'ticker histories'
 
 
+def calculate_variation(sender, instance, *args, **kwargs):
+    lastDay = TickerHistory.objects.filter(
+        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(days=2), instance.lastAnalyzed - timedelta(days=1)]).order_by('-lastAnalyzed').first()
+
+    if lastDay is not None:
+        instance.dayVolumeBtcVariation = instance.dayVolumeBtc - lastDay.dayVolumeBtc
+
+
 def save_ticker_history(sender, instance, created, **kwargs):
     TickerHistory.objects.create(tickerId=instance.tickerId,
                                  name=instance.name,
@@ -91,5 +102,6 @@ def save_ticker_history(sender, instance, created, **kwargs):
                                  dateAdded=instance.dateAdded,
                                  lastAnalyzed=instance.lastAnalyzed)
 
+pre_save.connect(calculate_variation, sender=Ticker)
 post_save.connect(save_ticker_history, sender=Ticker)
 post_update.connect(save_ticker_history, sender=Ticker)
