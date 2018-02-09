@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 from django.db.models.signals import post_save, pre_save
 
@@ -31,6 +32,11 @@ class Ticker(models.Model):
         null=True, blank=True, max_digits=5, decimal_places=2)
     percentChange7d = models.DecimalField(
         null=True, blank=True, max_digits=5, decimal_places=2)
+
+    btcPercentChange1h = models.FloatField(null=True, blank=True)
+    btcPercentChange24h = models.FloatField(null=True, blank=True)
+    btcPercentChange7d = models.FloatField(null=True, blank=True)
+
     lastUpdated = models.DateTimeField()
 
     dateAdded = models.DateTimeField(default=django.utils.timezone.now)
@@ -61,6 +67,11 @@ class TickerHistory(models.Model):
         null=True, blank=True, max_digits=5, decimal_places=2)
     percentChange7d = models.DecimalField(
         null=True, blank=True, max_digits=5, decimal_places=2)
+
+    btcPercentChange1h = models.FloatField(null=True, blank=True)
+    btcPercentChange24h = models.FloatField(null=True, blank=True)
+    btcPercentChange7d = models.FloatField(null=True, blank=True)
+
     lastUpdated = models.DateTimeField()
 
     dateAdded = models.DateTimeField()
@@ -74,11 +85,49 @@ class TickerHistory(models.Model):
 
 
 def calculate_variation(sender, instance, *args, **kwargs):
-    lastDay = TickerHistory.objects.filter(
-        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(days=2), instance.lastAnalyzed - timedelta(days=1)]).order_by('-lastAnalyzed').first()
 
-    if lastDay is not None:
-        instance.dayVolumeBtcVariation = instance.dayVolumeBtc - lastDay.dayVolumeBtc
+	# Day volume variation
+    x = settings.DAILY_HOUR_VARIATION_ERROR
+    lastDayInstance = TickerHistory.objects.filter(
+        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(hours=24+x), instance.lastAnalyzed - timedelta(hours=24-x)]).order_by('-lastAnalyzed').first()
+
+    if lastDayInstance:
+        if instance.dayVolumeBtc and lastDayInstance.dayVolumeBtc:
+            instance.dayVolumeBtcVariation = instance.dayVolumeBtc - lastDayInstance.dayVolumeBtc
+        else:
+            instance.dayVolumeBtcVariation = None
+    else:
+        instance.dayVolumeBtcVariation = None
+
+    # BTC percent change 1h
+    x = settings.HOUR_VARIATION_ERROR
+    lastHour = TickerHistory.objects.filter(
+        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(minutes=60+x), instance.lastAnalyzed - timedelta(minutes=60-x)]).all()
+
+    if lastHour:
+        instance.btcPercentChange1h = sum(l.priceBtc for l in lastHour) / len(lastHour)
+    else:
+        instance.btcPercentChange1h = None
+
+    # BTC percent change 24h
+    x = settings.DAILY_HOUR_VARIATION_ERROR
+    lastDay = TickerHistory.objects.filter(
+        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(hours=24+x), instance.lastAnalyzed - timedelta(hours=24-x)]).all()
+
+    if lastDay:
+        instance.btcPercentChange24h = sum(l.priceBtc for l in lastDay) / len(lastDay)
+    else:
+        instance.btcPercentChange24h = None
+
+    # BTC percent change 7d
+    x = settings.WEEKLY_HOUR_VARIATION_ERROR
+    lastWeek = TickerHistory.objects.filter(
+        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(hours=168+x), instance.lastAnalyzed - timedelta(hours=168-x)]).all()
+
+    if lastWeek:
+        instance.btcPercentChange7d = sum(l.priceBtc for l in lastWeek) / len(lastWeek)
+    else:
+        instance.btcPercentChange7d = None
 
 
 def save_ticker_history(sender, instance, created, **kwargs):
@@ -98,6 +147,9 @@ def save_ticker_history(sender, instance, created, **kwargs):
                                  percentChange1h=instance.percentChange1h,
                                  percentChange24h=instance.percentChange24h,
                                  percentChange7d=instance.percentChange7d,
+                                 btcPercentChange1h=instance.btcPercentChange1h,
+                                 btcPercentChange24h=instance.btcPercentChange24h,
+                                 btcPercentChange7d=instance.btcPercentChange7d,
                                  lastUpdated=instance.lastUpdated,
                                  dateAdded=instance.dateAdded,
                                  lastAnalyzed=instance.lastAnalyzed)
