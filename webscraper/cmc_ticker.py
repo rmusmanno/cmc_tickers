@@ -35,7 +35,7 @@ def parseTicker(data):
     ticker['dayVolumeUsd'] = data['24h_volume_usd']
     ticker['dayVolumeBtc'] = data['24h_volume_btc']
     ticker['marketCapUsd'] = data['market_cap_usd']
-    ticker['marketCapUsd'] = data['market_cap_btc']
+    ticker['marketCapBtc'] = data['market_cap_btc']
     ticker['availableSupply'] = data['available_supply']
     ticker['totalSupply'] = data['total_supply']
     ticker['maxSupply'] = data['max_supply']
