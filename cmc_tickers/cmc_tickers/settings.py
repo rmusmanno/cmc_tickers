@@ -26,7 +26,7 @@ SECRET_KEY = 'b3$654l@-*lw7pkux7p=ak=&2m)+deo309&ee^a7@%gaedzuw^'
 DEBUG = True
 
 #ALLOWED_HOSTS = ['0.0.0.0', 'web']
-ALLOWED_HOSTS = ['localhost']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -84,7 +84,7 @@ DATABASES = {
 }
 """
 
-DATABASES = {  
+DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': os.environ.get('DB_ENV_DB', 'postgres'),
