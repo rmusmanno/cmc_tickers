@@ -8,10 +8,10 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 parser = argparse.ArgumentParser(description='Scraper to read top tickers from CoinMarket.',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--t', '--top_tickers', type=int, default=100,
+parser.add_argument('--t', '--top_tickers', type=int, default=1000,
                     help='Number of top tickers to be analyzed.')
 parser.add_argument('--i', '--interval', type=int, default=60,
-                    help='Number of top tickers to be analyzed.')
+                    help='Interval (in seconds) between loop fetch of coins.')
 parser.add_argument('--s', '--server', type=str, default='http://localhost:8000',
                     help='Server url to store read tickers.')
 
