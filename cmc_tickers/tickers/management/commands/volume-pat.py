@@ -7,6 +7,8 @@ import humanize
 class Command(BaseCommand):
     MINIMUM_READINGS_TO_PROCESS_TICKER_AS_INTERESTING_TO_WATCH = 100
     help = 'Find ticker with increasing/decreasing volume patterns.'
+    l_tokens_perfect = []
+    ONLY_PERFECT_IF_AVG_VOLUME_TO_MCAP_PERCENT_ABOVE_X = 4
 
     def add_arguments(self, parser):
         #parser.add_argument('-w', '--workers', type=int, default=1, help='number of workers.')
@@ -48,6 +50,11 @@ class Command(BaseCommand):
         else:
             self.print_ticker_history_rs_data(rs)
 
+        #
+        #
+        #
+        print("There are %d Perfect tokens - %s" % (len(self.l_tokens_perfect), ",".join(self.l_tokens_perfect) ))
+
     def print_ticker_history_rs_data(self, rs_TickerHistory):
         rs = rs_TickerHistory
         if rs:
@@ -57,6 +64,9 @@ class Command(BaseCommand):
             value_btc_seen = None
             trading24tomcap = None
             s_prev_displayed_percent_reading_in_period = None
+
+            sum_24h_trading_volume_to_mcad = 0
+            count_24h_trading_volume_to_mcad = 0
 
             count_available_ticker_readings = len(rs)
             SHOW_X_TICKER_READINGS = 10
@@ -71,9 +81,9 @@ class Command(BaseCommand):
             for indx_of_available_reading, reading in enumerate(rs):
                 s_percent = get_day_trading_of_mcap_percent_for_obj(obj=reading)
                 if s_percent != None:
-                    fl_percent = float(s_percent.replace('%', ''))
+                    fl_percent_24h_trading_volume_to_mcad = float(s_percent.replace('%', ''))
                 else:
-                    fl_percent = None
+                    fl_percent_24h_trading_volume_to_mcad = None
 
                 current_available_reading_percent_in_available_period = int((indx_of_available_reading / count_available_ticker_readings) * 100)
                 if current_available_reading_percent_in_available_period % SHOW_X_TICKER_READINGS == 0 or indx_of_available_reading+1 == len(rs):
@@ -85,13 +95,16 @@ class Command(BaseCommand):
                 # Print ticker if last ticker read (oldest one) or if we reached far enough from previous printed ticker
                 if (indx_of_available_reading % print_reading_modulo == 0 and s_displayed_percent_reading_in_period != s_prev_displayed_percent_reading_in_period) or indx_of_available_reading+1 == len(rs):
                     print("%s%% - %s symbol ticker was read %s, rank #%s, value %s BTC (%s%% daily change) with %s trading percent (MCAP: %s)" % \
-                          (s_displayed_percent_reading_in_period, reading.symbol, get_time_ago(reading.lastUpdated), reading.rank, reading.priceBtc, reading.percentChange24h, s_percent, format_using_humanize(reading.marketCapUsd, humanize.intword)) \
+                          (s_displayed_percent_reading_in_period, reading.symbol, get_time_ago(reading.lastUpdated), reading.rank, reading.priceBtc, reading.percentChange24h, s_percent, format_using_humanize(reading.markedCapUsd, humanize.intword)) \
                           )
                     s_prev_displayed_percent_reading_in_period = s_displayed_percent_reading_in_period
 
-                if fl_percent != None:
-                    if flt_max_24h_trading_volume_to_mcad_seen == None or flt_max_24h_trading_volume_to_mcad_seen < fl_percent:
-                        flt_max_24h_trading_volume_to_mcad_seen = fl_percent
+                if fl_percent_24h_trading_volume_to_mcad != None:
+                    sum_24h_trading_volume_to_mcad += fl_percent_24h_trading_volume_to_mcad
+                    count_24h_trading_volume_to_mcad += 1
+
+                    if flt_max_24h_trading_volume_to_mcad_seen == None or flt_max_24h_trading_volume_to_mcad_seen < fl_percent_24h_trading_volume_to_mcad:
+                        flt_max_24h_trading_volume_to_mcad_seen = fl_percent_24h_trading_volume_to_mcad
 
                 if not which_symbol:
                     which_symbol = reading.symbol
@@ -117,28 +130,28 @@ class Command(BaseCommand):
                             value_btc_seen[0] = reading.priceBtc
 
                 # 24h trading / mcap
-                if fl_percent != None:
-                    if not trading24tomcap or fl_percent > trading24tomcap[1] or fl_percent < trading24tomcap[0]:
+                if fl_percent_24h_trading_volume_to_mcad != None:
+                    if not trading24tomcap or fl_percent_24h_trading_volume_to_mcad > trading24tomcap[1] or fl_percent_24h_trading_volume_to_mcad < trading24tomcap[0]:
                         if not trading24tomcap:
-                            trading24tomcap = [fl_percent , fl_percent]
+                            trading24tomcap = [fl_percent_24h_trading_volume_to_mcad , fl_percent_24h_trading_volume_to_mcad]
                         else:
-                            if fl_percent > trading24tomcap[1]:
-                                trading24tomcap[1] = fl_percent
+                            if fl_percent_24h_trading_volume_to_mcad > trading24tomcap[1]:
+                                trading24tomcap[1] = fl_percent_24h_trading_volume_to_mcad
 
-                            if fl_percent < trading24tomcap[0]:
-                                trading24tomcap[0] = fl_percent
+                            if fl_percent_24h_trading_volume_to_mcad < trading24tomcap[0]:
+                                trading24tomcap[0] = fl_percent_24h_trading_volume_to_mcad
 
                 # mcap
-                if reading.marketCapUsd != None:
-                    if not mcap_seen or reading.marketCapUsd > mcap_seen[1] or reading.marketCapUsd < mcap_seen[0]:
+                if reading.markedCapUsd != None:
+                    if not mcap_seen or reading.markedCapUsd > mcap_seen[1] or reading.markedCapUsd < mcap_seen[0]:
                         if not mcap_seen:
-                            mcap_seen = [reading.marketCapUsd , reading.marketCapUsd]
+                            mcap_seen = [reading.markedCapUsd , reading.markedCapUsd]
                         else:
-                            if reading.marketCapUsd > mcap_seen[1]:
-                                mcap_seen[1] = reading.marketCapUsd
+                            if reading.markedCapUsd > mcap_seen[1]:
+                                mcap_seen[1] = reading.markedCapUsd
 
-                            if reading.marketCapUsd < mcap_seen[0]:
-                                mcap_seen[0] = reading.marketCapUsd
+                            if reading.markedCapUsd < mcap_seen[0]:
+                                mcap_seen[0] = reading.markedCapUsd
 
 
             if flt_max_24h_trading_volume_to_mcad_seen != None and self.alert_trading_volume_percent_th != None and \
@@ -148,32 +161,43 @@ class Command(BaseCommand):
             rank_most_recent_or_now = rs[0].rank
             rank_oldest_logged = rs[len(rs)-1].rank
 
+
+            avg_24h_trading_volume_to_mcad = round(sum_24h_trading_volume_to_mcad / count_24h_trading_volume_to_mcad, 1) if count_24h_trading_volume_to_mcad else None
+
             s_alert_rise_in_rank = ""
             if  rank_oldest_logged > rank_most_recent_or_now:
                 percent_rank_rise = int((rank_oldest_logged - rank_most_recent_or_now ) / rank_oldest_logged * 100)
                 if  percent_rank_rise > self.alert_rank_rise_percent_th:
-                    s_alert_rise_in_rank = "%d) Hey, %s rank rises from rank #%s to rank #%s (+%s positions - %s%%)\r\n" % \
-                        (self.i_alert_rise_in_rank_count+1, reading, rank_oldest_logged, rank_most_recent_or_now, rank_oldest_logged - rank_most_recent_or_now, percent_rank_rise)
+
+                    s_detection_word = "Hey"
+                    if avg_24h_trading_volume_to_mcad != None and avg_24h_trading_volume_to_mcad > self.ONLY_PERFECT_IF_AVG_VOLUME_TO_MCAP_PERCENT_ABOVE_X:
+                        s_detection_word = "Perfect"
+                        self.l_tokens_perfect.append(which_symbol)
+
+                    s_alert_rise_in_rank = "%d) %s, %s rank rises from rank #%s to rank #%s (+%s positions - %s%%)\r\n" % \
+                        (self.i_alert_rise_in_rank_count+1, s_detection_word, reading, rank_oldest_logged, rank_most_recent_or_now, rank_oldest_logged - rank_most_recent_or_now, percent_rank_rise)
 
 
             if s_alert_rise_in_rank != "":
                 self.i_alert_rise_in_rank_count += 1
 
+
+
             print("=======================\r\n"
                     "Summray for %s:\r\n"
-                    "Rank: #%s - #%s (current rank: #%s)\r\n"
-                    "Value: %s - %s BTC (current value: %s BTC)\r\n"
-                    "MCAP: %s - %s (current Market Cap: %s)\r\n"
-                    "24h Trading / MCAP: %s%% - %s%% (%s)\r\n"
+                    "%s Rank: #%s - #%s (latest rank: #%s)\r\n"
+                    "%s Value: %s - %s BTC (latest value: %s BTC)\r\n"
+                    "%s MCAP: %s - %s (latest Market Cap: %s)\r\n"
+                    "%s 24h Trading / MCAP: %s%% - %s%% (latest Trading / MCAP: %s, Avg. Trading / MCAP: %s%% from %d readings)\r\n"
                     "%s"%
                     (which_symbol,
-                     rank_seen[0], rank_seen[1], rs[0].rank,
-                     value_btc_seen[0], value_btc_seen[1], rs[0].priceBtc,
-                     format_using_humanize(mcap_seen[0] if mcap_seen != None else None, humanize.intword), format_using_humanize(mcap_seen[1]  if mcap_seen != None else None, humanize.intword),
-                     format_using_humanize(rs[0].marketCapUsd, humanize.intword),
-                     round(trading24tomcap[0],1) if trading24tomcap != None else None,
-                     round(trading24tomcap[1],1) if trading24tomcap != None else None,
-                     get_day_trading_of_mcap_percent_for_obj(obj=rs[0]),
+                     which_symbol, rank_seen[0], rank_seen[1], rs[0].rank,
+                     which_symbol, value_btc_seen[0], value_btc_seen[1], rs[0].priceBtc,
+                     which_symbol, format_using_humanize(mcap_seen[0] if mcap_seen != None else None, humanize.intword), format_using_humanize(mcap_seen[1]  if mcap_seen != None else None, humanize.intword),
+                     format_using_humanize(rs[0].markedCapUsd, humanize.intword),
+                     which_symbol, round(trading24tomcap[0],1) if trading24tomcap != None else None, round(trading24tomcap[1],1) if trading24tomcap != None else None, get_day_trading_of_mcap_percent_for_obj(obj=rs[0]),
+                     avg_24h_trading_volume_to_mcad,
+                     count_24h_trading_volume_to_mcad,
                      s_alert_rise_in_rank
                      )
                   )
