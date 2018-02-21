@@ -23,6 +23,10 @@ class Ticker(models.Model):
     dayVolumeBtcVariation = models.FloatField(null=True, blank=True)
     marketCapUsd = models.FloatField(null=True, blank=True)
     marketCapBtc = models.FloatField(null=True, blank=True)
+
+    dayVolumeToMCAPPercentUsd = models.FloatField(null=True, blank=True)
+    dayVolumeToMCAPPercentBtc = models.FloatField(null=True, blank=True)
+
     availableSupply = models.FloatField(null=True, blank=True)
     totalSupply = models.FloatField(null=True, blank=True)
     maxSupply = models.FloatField(null=True, blank=True)
@@ -56,6 +60,10 @@ class TickerHistory(models.Model):
     dayVolumeUsd = models.FloatField(null=True, blank=True)
     dayVolumeBtc = models.FloatField(null=True, blank=True)
     dayVolumeBtcVariation = models.FloatField(null=True, blank=True)
+
+    dayVolumeToMCAPPercentUsd = models.FloatField(null=True, blank=True)
+    dayVolumeToMCAPPercentBtc = models.FloatField(null=True, blank=True)
+
     marketCapUsd = models.FloatField(null=True, blank=True)
     marketCapBtc = models.FloatField(null=True, blank=True)
     availableSupply = models.FloatField(null=True, blank=True)
@@ -83,6 +91,10 @@ class TickerHistory(models.Model):
     class Meta:
         verbose_name_plural = 'ticker histories'
 
+
+def calculate_dayVolumeToMCAPPercent(sender, instance, *args, **kwargs):
+    instance.dayVolumeToMCAPPercentUsd = (dayVolumeUsd * 100) / marketCapUsd
+    instance.dayVolumeToMCAPPercentBtc = (dayVolumeBtc * 100) / marketCapBtc
 
 def calculate_variation(sender, instance, *args, **kwargs):
 
@@ -152,8 +164,12 @@ def save_ticker_history(sender, instance, created, **kwargs):
                                  btcPercentChange7d=instance.btcPercentChange7d,
                                  lastUpdated=instance.lastUpdated,
                                  dateAdded=instance.dateAdded,
-                                 lastAnalyzed=instance.lastAnalyzed)
+                                 lastAnalyzed=instance.lastAnalyzed,
+                                 dayVolumeBtcVariation=intance.dayVolumeBtcVariation,
+                                 dayVolumeToMCAPPercentUsd=instance.dayVolumeToMCAPPercentUsd,
+                                 dayVolumeToMCAPPercentBtc=instance.dayVolumeToMCAPPercentBtc)
 
+pre_save.connect(calculate_dayVolumeToMCAPPercent, sender=Ticker)
 pre_save.connect(calculate_variation, sender=Ticker)
 post_save.connect(save_ticker_history, sender=Ticker)
 post_update.connect(save_ticker_history, sender=Ticker)
