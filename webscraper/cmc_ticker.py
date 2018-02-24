@@ -14,19 +14,26 @@ parser.add_argument('--i', '--interval', type=int, default=60,
                     help='Interval (in seconds) between loop fetch of coins.')
 parser.add_argument('--s', '--server', type=str, default='http://localhost:8000',
                     help='Server url to store read tickers.')
+parser.add_argument('--c', type=str, default='',
+                    help='Specific symbol to read. Use <id> value from coinmarketcap api.')
 
 args = parser.parse_args()
 
+specific_symbol = args.c
+base_coin_url = 'https://api.coinmarketcap.com/v1/ticker'
+if specific_symbol != '':
+    base_coin_url += '/' + str(specific_symbol)
+base_coin_url += '/?convert=BTC&limit='
 script_interval = args.i
 number_of_top_tickers_to_be_analyzed = args.t
-coin_market_url = 'https://api.coinmarketcap.com/v1/ticker/?convert=BTC&limit=' + \
-    str(number_of_top_tickers_to_be_analyzed)
+coin_market_url =  base_coin_url + str(number_of_top_tickers_to_be_analyzed)
 server_url = args.s
 
 def parseTicker(data):
     ticker = {}
 
-    ticker['tickerId'] = data['id']
+    # ticker['tickerId'] = data['id']
+    ticker['tickerId'] = str(data['symbol']) + '_' + str(data['name'])
     ticker['name'] = data['name']
     ticker['symbol'] = data['symbol']
     ticker['rank'] = data['rank']
