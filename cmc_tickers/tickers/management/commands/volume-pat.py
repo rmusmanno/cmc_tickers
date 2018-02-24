@@ -102,7 +102,7 @@ class Command(BaseCommand):
                         s_change_from_base_btc_value = ""
 
                     print("%s%% - %s symbol ticker was read %s, rank #%s, value %s BTC (%s%% daily change) with %s trading percent (MCAP: %s)%s" % \
-                          (s_displayed_percent_reading_in_period, reading.symbol, get_time_ago(reading.lastUpdated), reading.rank, reading.priceBtc, reading.percentChange24h, s_percent, format_using_humanize(reading.markedCapUsd, humanize.intword),
+                          (s_displayed_percent_reading_in_period, reading.symbol, get_time_ago(reading.lastUpdated), reading.rank, reading.priceBtc, reading.percentChange24h, s_percent, format_using_humanize(reading.marketCapUsd, humanize.intword),
                           s_change_from_base_btc_value) \
                           )
                     if s_prev_displayed_percent_reading_in_period == None: # save base
@@ -154,16 +154,16 @@ class Command(BaseCommand):
                                 trading24tomcap[0] = fl_percent_24h_trading_volume_to_mcad
 
                 # mcap
-                if reading.markedCapUsd != None:
-                    if not mcap_seen or reading.markedCapUsd > mcap_seen[1] or reading.markedCapUsd < mcap_seen[0]:
+                if reading.marketCapUsd != None:
+                    if not mcap_seen or reading.marketCapUsd > mcap_seen[1] or reading.marketCapUsd < mcap_seen[0]:
                         if not mcap_seen:
-                            mcap_seen = [reading.markedCapUsd , reading.markedCapUsd]
+                            mcap_seen = [reading.marketCapUsd , reading.marketCapUsd]
                         else:
-                            if reading.markedCapUsd > mcap_seen[1]:
-                                mcap_seen[1] = reading.markedCapUsd
+                            if reading.marketCapUsd > mcap_seen[1]:
+                                mcap_seen[1] = reading.marketCapUsd
 
-                            if reading.markedCapUsd < mcap_seen[0]:
-                                mcap_seen[0] = reading.markedCapUsd
+                            if reading.marketCapUsd < mcap_seen[0]:
+                                mcap_seen[0] = reading.marketCapUsd
 
 
             if flt_max_24h_trading_volume_to_mcad_seen != None and self.alert_trading_volume_percent_th != None and \
@@ -206,7 +206,7 @@ class Command(BaseCommand):
                      which_symbol, rank_seen[0], rank_seen[1], rs[0].rank,
                      which_symbol, value_btc_seen[0], value_btc_seen[1], rs[0].priceBtc,
                      which_symbol, format_using_humanize(mcap_seen[0] if mcap_seen != None else None, humanize.intword), format_using_humanize(mcap_seen[1]  if mcap_seen != None else None, humanize.intword),
-                     format_using_humanize(rs[0].markedCapUsd, humanize.intword),
+                     format_using_humanize(rs[0].marketCapUsd, humanize.intword),
                      which_symbol, round(trading24tomcap[0],1) if trading24tomcap != None else None, round(trading24tomcap[1],1) if trading24tomcap != None else None, get_day_trading_of_mcap_percent_for_obj(obj=rs[0]),
                      avg_24h_trading_volume_to_mcad,
                      count_24h_trading_volume_to_mcad,
