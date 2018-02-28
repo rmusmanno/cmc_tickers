@@ -13,6 +13,16 @@ docker-compose/docker
 
 To change scraper range, change its [-t] parameter in run_scraper.sh
 
+#When docker image is started we run
+
+cd webscraper
+python cmc_ticker.py --s http://web:8000 --t 1300 --i 1800
+
+#To collect a specific ticker more accuretly (for exampe: ELA every 60 secs)
+
+cd webscraper && python cmc_ticker.py --c ELA_elastic --i 60
+
+
 
 # Run on Droplet like so newest version
 docker-compose stop && git pull && docker-compose build && docker-compose up -d
