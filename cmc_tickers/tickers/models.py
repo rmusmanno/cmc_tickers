@@ -46,6 +46,8 @@ class Ticker(models.Model):
     dateAdded = models.DateTimeField(default=django.utils.timezone.now)
     lastAnalyzed = models.DateTimeField(default=django.utils.timezone.now)
 
+    btcLink = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL)
+
     def __str__(self):
         return self.name
 
@@ -85,6 +87,8 @@ class TickerHistory(models.Model):
     dateAdded = models.DateTimeField()
     lastAnalyzed = models.DateTimeField()
 
+    btcLink = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL)
+
     def __str__(self):
         return self.name + " [" + str(self.lastAnalyzed) + "]"
 
@@ -96,12 +100,13 @@ def calculate_dayVolumeToMCAPPercent(sender, instance, *args, **kwargs):
     instance.dayVolumeToMCAPPercentUsd = (dayVolumeUsd * 100) / marketCapUsd
     instance.dayVolumeToMCAPPercentBtc = (dayVolumeBtc * 100) / marketCapBtc
 
+
 def calculate_variation(sender, instance, *args, **kwargs):
 
 	# Day volume variation
     x = settings.DAILY_HOUR_VARIATION_ERROR
     lastDayInstance = TickerHistory.objects.filter(
-        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(hours=24+x), instance.lastAnalyzed - timedelta(hours=24-x)]).order_by('-lastAnalyzed').first()
+        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(hours=24 + x), instance.lastAnalyzed - timedelta(hours=24 - x)]).order_by('-lastAnalyzed').first()
 
     if lastDayInstance:
         if instance.dayVolumeBtc and lastDayInstance.dayVolumeBtc:
@@ -114,35 +119,51 @@ def calculate_variation(sender, instance, *args, **kwargs):
     # BTC percent change 1h
     x = settings.HOUR_VARIATION_ERROR
     lastHour = TickerHistory.objects.filter(
-        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(minutes=60+x), instance.lastAnalyzed - timedelta(minutes=60-x)]).all()
+        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(minutes=60 + x), instance.lastAnalyzed - timedelta(minutes=60 - x)]).all()
 
     if lastHour:
-        instance.btcPercentChange1h = sum(l.priceBtc for l in lastHour) / len(lastHour)
+        instance.btcPercentChange1h = sum(
+            l.priceBtc for l in lastHour) / len(lastHour)
     else:
         instance.btcPercentChange1h = None
 
     # BTC percent change 24h
     x = settings.DAILY_HOUR_VARIATION_ERROR
     lastDay = TickerHistory.objects.filter(
-        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(hours=24+x), instance.lastAnalyzed - timedelta(hours=24-x)]).all()
+        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(hours=24 + x), instance.lastAnalyzed - timedelta(hours=24 - x)]).all()
 
     if lastDay:
-        instance.btcPercentChange24h = sum(l.priceBtc for l in lastDay) / len(lastDay)
+        instance.btcPercentChange24h = sum(
+            l.priceBtc for l in lastDay) / len(lastDay)
     else:
         instance.btcPercentChange24h = None
 
     # BTC percent change 7d
     x = settings.WEEKLY_HOUR_VARIATION_ERROR
     lastWeek = TickerHistory.objects.filter(
-        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(hours=168+x), instance.lastAnalyzed - timedelta(hours=168-x)]).all()
+        lastAnalyzed__range=[instance.lastAnalyzed - timedelta(hours=168 + x), instance.lastAnalyzed - timedelta(hours=168 - x)]).all()
 
     if lastWeek:
-        instance.btcPercentChange7d = sum(l.priceBtc for l in lastWeek) / len(lastWeek)
+        instance.btcPercentChange7d = sum(
+            l.priceBtc for l in lastWeek) / len(lastWeek)
     else:
         instance.btcPercentChange7d = None
 
 
+def save_btc_link(sender, instance, created, **kwargs):
+    if (instance.tickerId != 'BTC_bitcoin'):
+        btc = Ticker.objects.filter(tickerId='BTC_bitcoin').order_by('-lastAnalyzed').first()
+    else:
+        btc = None
+    instance.btcLink = btc
+
+
 def save_ticker_history(sender, instance, created, **kwargs):
+    if (instance.tickerId != 'BTC_bitcoin'):
+        btc = TickerHistory.objects.filter(tickerId='BTC_bitcoin').order_by('-lastAnalyzed').first()
+    else:
+        btc = None
+
     TickerHistory.objects.create(tickerId=instance.tickerId,
                                  name=instance.name,
                                  symbol=instance.symbol,
@@ -167,8 +188,10 @@ def save_ticker_history(sender, instance, created, **kwargs):
                                  lastAnalyzed=instance.lastAnalyzed,
                                  dayVolumeBtcVariation=intance.dayVolumeBtcVariation,
                                  dayVolumeToMCAPPercentUsd=instance.dayVolumeToMCAPPercentUsd,
-                                 dayVolumeToMCAPPercentBtc=instance.dayVolumeToMCAPPercentBtc)
+                                 dayVolumeToMCAPPercentBtc=instance.dayVolumeToMCAPPercentBtc,
+                                 btcLink = btc)
 
+pre_save.connect(save_btc_link, sender=Ticker)
 pre_save.connect(calculate_dayVolumeToMCAPPercent, sender=Ticker)
 pre_save.connect(calculate_variation, sender=Ticker)
 post_save.connect(save_ticker_history, sender=Ticker)
