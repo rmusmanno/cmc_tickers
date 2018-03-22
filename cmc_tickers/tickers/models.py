@@ -97,8 +97,8 @@ class TickerHistory(models.Model):
 
 
 def calculate_dayVolumeToMCAPPercent(sender, instance, *args, **kwargs):
-    instance.dayVolumeToMCAPPercentUsd = (dayVolumeUsd * 100) / marketCapUsd
-    instance.dayVolumeToMCAPPercentBtc = (dayVolumeBtc * 100) / marketCapBtc
+    instance.dayVolumeToMCAPPercentUsd = (instance.dayVolumeUsd * 100) / instance.marketCapUsd
+    instance.dayVolumeToMCAPPercentBtc = (instance.dayVolumeBtc * 100) / instance.marketCapBtc
 
 
 def calculate_variation(sender, instance, *args, **kwargs):
@@ -186,7 +186,7 @@ def save_ticker_history(sender, instance, created, **kwargs):
                                  lastUpdated=instance.lastUpdated,
                                  dateAdded=instance.dateAdded,
                                  lastAnalyzed=instance.lastAnalyzed,
-                                 dayVolumeBtcVariation=intance.dayVolumeBtcVariation,
+                                 dayVolumeBtcVariation=instance.dayVolumeBtcVariation,
                                  dayVolumeToMCAPPercentUsd=instance.dayVolumeToMCAPPercentUsd,
                                  dayVolumeToMCAPPercentBtc=instance.dayVolumeToMCAPPercentBtc,
                                  btcLink = btc)
